@@ -366,4 +366,16 @@ const forgotPassword = async (req: any, res: Response) => {
     }
 };
 
+const resetPassword = async (req: any, res: Response) => {
+    try {
+    } catch (error: any) {
+        console.error("Error occurred while resetting password:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error occurred while resetting password",
+            error: error.message,
+        });
+    }
+};
+
 export { login, signup, refresh, me, forgotPassword };

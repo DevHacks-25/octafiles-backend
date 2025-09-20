@@ -15,7 +15,6 @@ router.post("/login", login);
 router.post("/refresh", auth, refresh);
 router.post("/me", auth, me);
 // router.post("/changeEmail", auth, changeEmail);
-// router.post("/changePwd", auth, changePassword);
 // router.post("/deleteAcc", auth, deleteAcc);
 router.post("/forgotPassword", forgotPassword);
 // router.post("/generateOTP", auth, generateOTP);

@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import environments from "../environments";
+import userRoutes from "./user";
 
 const apiLogger = (req: Request, res: Response, next: NextFunction) => {
     const start = performance.now();
@@ -20,7 +21,7 @@ const apiLogger = (req: Request, res: Response, next: NextFunction) => {
 export = (app: express.Application) => {
     app.use(
         cors({
-            origin: environments.ORIGIN,
+            origin: environments.react_app_allowed_origins,
             methods: ["GET", "POST", "PUT", "DELETE"],
             credentials: true,
         })
@@ -28,4 +29,5 @@ export = (app: express.Application) => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(apiLogger);
+    app.use("/auth", userRoutes);
 };
