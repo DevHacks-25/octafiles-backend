@@ -49,7 +49,7 @@ const advocateSchema = new mongoose.Schema(
         remark: {
             type: String,
         },
-        price: {
+        hourlyRate: {
             type: Number,
         },
         yearsOfExp: {
@@ -58,7 +58,7 @@ const advocateSchema = new mongoose.Schema(
         image: {
             type: String,
         },
-        facilitiesNservices: [
+        specializations: [
             {
                 category: {
                     type: String,
@@ -78,7 +78,7 @@ const advocateSchema = new mongoose.Schema(
                 ],
             },
         ],
-        timeForServe: [
+        timeForServing: [
             {
                 day: {
                     type: String,
@@ -98,7 +98,7 @@ const advocateSchema = new mongoose.Schema(
                 ],
             },
         ],
-        prefferedLanguages: [
+        languages: [
             {
                 type: String,
             },
@@ -112,6 +112,50 @@ const advocateSchema = new mongoose.Schema(
                 ref: "Appointment",
             },
         ],
+        rating: {
+            type: Number,
+        },
+        reviews: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Review",
+            },
+        ],
+        /* Address */
+        address: {
+            addr_line1: {
+                type: String,
+            },
+            addr_line2: {
+                type: String,
+            },
+            city: {
+                type: String,
+            },
+            state: {
+                type: String,
+            },
+            country: {
+                type: String,
+            },
+            zipCode: {
+                type: String,
+            },
+        },
+        bio: {
+            type: String,
+        },
+        isAvailable: {
+            type: Boolean,
+            default: true,
+        },
+        responseTime: {
+            type: String,
+        },
+        // To be added in future
+        completedCases: {
+            type: Number,
+        },
     },
     { timestamps: true }
 );

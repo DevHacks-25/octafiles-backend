@@ -2,53 +2,160 @@ import mongoose from "mongoose";
 
 const paralegalSchema = new mongoose.Schema(
     {
-        firstName: { type: String, required: true, trim: true },
-        lastName: { type: String, required: true, trim: true },
-        email: { type: String, required: true, trim: true },
-        username: { type: String, required: true },
-        password: { type: String, required: true },
-        accountType: { required: true, type: String },
-        contactNumber: { required: true, type: Number, trim: true },
+        firstName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        lastName: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        username: {
+            type: String,
+            required: true,
+        },
+        password: {
+            type: String,
+            required: true,
+        },
+        accountType: {
+            required: true,
+            type: String,
+        },
+        contactNumber: {
+            required: true,
+            type: Number,
+            trim: true,
+        },
+        barCouncilNumber: {
+            type: String,
+            trim: true,
+        },
+        dob: {
+            type: String,
+        },
         activationStatus: {
             type: String,
             enum: ["pending", "approved", "rejected", "unverified"],
             default: "pending",
         },
-        remark: { type: String },
-        image: {
+        remark: {
             type: String,
         },
-        facilitiesNservices: [
-            {
-                category: { type: String, required: true },
-                subcategories: [{ type: String, required: true }],
-            },
-        ],
-        price: {
+        hourlyRate: {
             type: Number,
         },
         yearsOfExp: {
             type: String,
         },
-        dob: {
+        image: {
             type: String,
         },
-        timeForServe: [
+        specializations: [
             {
-                day: { type: String, required: true },
-                slots: [
+                category: {
+                    type: String,
+                    required: true,
+                },
+                subcategories: [
                     {
-                        from: { type: String, required: true },
-                        to: { type: String, required: true },
+                        name: {
+                            type: String,
+                            required: true,
+                        },
+                        price: {
+                            type: Number,
+                            required: true,
+                        },
                     },
                 ],
             },
         ],
-        prefferedLanguages: [{ type: String }],
-        achievementAndComments: { type: String },
-        appointments: [
-            { type: mongoose.Schema.Types.ObjectId, ref: "Appointment" },
+        timeForServing: [
+            {
+                day: {
+                    type: String,
+                    required: true,
+                },
+                slots: [
+                    {
+                        from: {
+                            type: String,
+                            required: true,
+                        },
+                        to: {
+                            type: String,
+                            required: true,
+                        },
+                    },
+                ],
+            },
         ],
+        languages: [
+            {
+                type: String,
+            },
+        ],
+        achievementAndComments: {
+            type: String,
+        },
+        appointments: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Appointment",
+            },
+        ],
+        rating: {
+            type: Number,
+        },
+        reviews: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Review",
+            },
+        ],
+        /* Address */
+        address: {
+            addr_line1: {
+                type: String,
+            },
+            addr_line2: {
+                type: String,
+            },
+            city: {
+                type: String,
+            },
+            state: {
+                type: String,
+            },
+            country: {
+                type: String,
+            },
+            zipCode: {
+                type: String,
+            },
+        },
+        bio: {
+            type: String,
+        },
+        isAvailable: {
+            type: Boolean,
+            default: true,
+        },
+        responseTime: {
+            type: String,
+        },
+        // To be added in future
+        completedCases: {
+            type: Number,
+        },
     },
     { timestamps: true }
 );

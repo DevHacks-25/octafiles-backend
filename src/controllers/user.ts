@@ -271,6 +271,7 @@ const login = async (req: Request, res: Response) => {
             user = user.toObject() as any;
             user.token = token;
             user.password = undefined;
+            user.appointments = undefined;
 
             return res.status(200).json({
                 success: true,
@@ -514,17 +515,20 @@ const forgotPasswordOTP = async (req: any, res: Response) => {
     }
 };
 
-// const resetPassword = async (req: any, res: Response) => {
-//     try {
-//     } catch (error: any) {
-//         console.error("Error occurred while resetting password:", error);
-//         return res.status(500).json({
-//             success: false,
-//             message: "Error occurred while resetting password",
-//             error: error.message,
-//         });
-//     }
-// };
+const verifyServiceProvidersForm = async (req: any, res: Response) => {
+    try {
+        return res.status(200).json({
+            success: true,
+            message: "Service providers form verified successfully",
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: "Error occurred while verifying service providers form",
+            error: error.message,
+        });
+    }
+};
 
 export {
     login,
@@ -534,4 +538,5 @@ export {
     forgotPassword,
     sendOTP,
     forgotPasswordOTP,
+    verifyServiceProvidersForm,
 };
