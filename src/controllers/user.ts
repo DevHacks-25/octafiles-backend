@@ -7,6 +7,8 @@ import Advocate from "../models/Advocate";
 import Paralegal from "../models/Paralegal";
 import Admin from "../models/Admin";
 import OTP from "../models/OTP";
+import mailSender from "../utils/mailSender";
+import passwordUpdated from "../mails/format/passwordUpdated";
 
 const signup = async (req: Request, res: Response) => {
     try {
@@ -186,7 +188,6 @@ const login = async (req: Request, res: Response) => {
 
             user = user.toObject() as any;
             user.token = token;
-            user.password = undefined;
 
             return res.status(200).json({
                 success: true,
@@ -251,4 +252,118 @@ const refresh = async (req: any, res: Response) => {
     }
 };
 
-export { login, signup, refresh };
+const me = async (req: any, res: Response) => {
+    try {
+        const tempUser = req.user;
+        const { email } = tempUser;
+
+        let user = await Client.findOne({ email });
+        if (!user) user = await Advocate.findOne({ email });
+        if (!user) user = await Paralegal.findOne({ email });
+        if (!user) user = await Admin.findOne({ email });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Something went wrong",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            user,
+            message: "User fetched successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Me failure",
+        });
+    }
+};
+
+const forgotPassword = async (req: any, res: Response) => {
+    try {
+        const { Otp, email, newPassword, confirmPassword } = req.body;
+
+        const response = await OTP.find({ email })
+            .sort({ createdAt: -1 })
+            .limit(1);
+
+        if (response.length === 0 || Otp !== response[0]?.otp) {
+            return res.status(400).json({
+                success: false,
+                message: "The OTP is not valid",
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(401).json({
+                success: false,
+                message: "Confirm and New password are not matching",
+            });
+        }
+
+        const encryptedPassword = await bcrypt.hash(newPassword, 10);
+
+        let updatedUserDetails = await Client.findOneAndUpdate(
+            { email },
+            { password: encryptedPassword },
+            { new: true }
+        );
+
+        if (updatedUserDetails === null) {
+            updatedUserDetails = await Advocate.findOneAndUpdate(
+                { email },
+                { password: encryptedPassword },
+                { new: true }
+            );
+        }
+
+        if (updatedUserDetails === null) {
+            updatedUserDetails = await Paralegal.findOneAndUpdate(
+                { email },
+                { password: encryptedPassword },
+                { new: true }
+            );
+        }
+
+        if (updatedUserDetails === null) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        try {
+            await mailSender(
+                email,
+                `Password updated successfully`,
+                passwordUpdated(
+                    email,
+                    `${updatedUserDetails.firstName} ${updatedUserDetails.lastName}`
+                )
+            );
+            console.log("Email sent successfully");
+        } catch (error: any) {
+            console.error("Error occurred while sending email:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Error occurred while sending email",
+                error: error.message,
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+        });
+    } catch (error: any) {
+        console.error("Error occurred while updating password:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error occurred while updating password",
+            error: error.message,
+        });
+    }
+};
+
+export { login, signup, refresh, me, forgotPassword };
