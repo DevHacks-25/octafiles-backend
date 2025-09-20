@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import environments from "../environments";
 
-const auth = (req: Request, res: Response, next: NextFunction) => {
+const auth = (req: any, res: Response, next: NextFunction) => {
     try {
         console.log("Currently going through middleware");
         const token = req?.header("Authorization")?.replace("Bearer ", "");
@@ -16,9 +16,10 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
         }
 
         try {
-            const decode = jwt.verify(token, environments.JWT_SECRET);
+            const decode = jwt.verify(token, environments.jwt_secret);
             console.log(decode);
             req.user = decode;
+            req.token = token;
         } catch (error) {
             return res.status(401).json({
                 success: false,

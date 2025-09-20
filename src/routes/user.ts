@@ -1,6 +1,6 @@
 import express from "express";
 const router = express.Router();
-import { login } from "../controllers/user";
+import { login, signup, refresh } from "../controllers/user";
 
 // const {
 //     sendotp,
@@ -18,8 +18,9 @@ import { login } from "../controllers/user";
 const { auth } = require("../middleware/authentication");
 
 // router.post("/sendOtp", sendotp);
-// router.post("/signup", signup);
+router.post("/signup", signup);
 router.post("/login", login);
+router.post("/refresh", auth, refresh);
 // router.post("/changeEmail", auth, changeEmail);
 // router.post("/changePwd", auth, changePassword);
 // router.post("/deleteAcc", auth, deleteAcc);
