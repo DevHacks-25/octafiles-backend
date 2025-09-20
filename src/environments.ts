@@ -5,7 +5,7 @@ dotenv.config();
 export default {
     react_app_origin_server: process.env.REACT_APP_ORIGIN_SERVER,
     react_app_allowed_origins: process.env.REACT_APP_ALLOWED_ORIGINS,
-    mongodb_url: process.env.MONGODB_URL,
+    mongodb_url: process.env.MONGODB_URL || "mongodb://localhost:27017",
     docuseal_api_key: process.env.DOCUSEAL_API_KEY,
     mail_pass: process.env.MAIL_PASS,
     mail_user: process.env.MAIL_USER,

@@ -6,7 +6,7 @@ const paralegalSchema = new mongoose.Schema(
         lastName: { type: String, required: true, trim: true },
         email: { type: String, required: true, trim: true },
         username: { type: String, required: true },
-        password: { type: String, required: true, select: false },
+        password: { type: String, required: true },
         accountType: { required: true, type: String },
         contactNumber: { required: true, type: Number, trim: true },
         activationStatus: {

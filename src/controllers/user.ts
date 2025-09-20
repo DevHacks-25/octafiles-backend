@@ -9,6 +9,83 @@ import Admin from "../models/Admin";
 import OTP from "../models/OTP";
 import mailSender from "../utils/mailSender";
 import passwordUpdated from "../mails/format/passwordUpdated";
+import otpGenerator from "otp-generator";
+
+type UserDocument =
+    | InstanceType<typeof Client>
+    | InstanceType<typeof Advocate>
+    | InstanceType<typeof Paralegal>
+    | InstanceType<typeof Admin>;
+
+type UserObject = {
+    [key: string]: any;
+    password?: string;
+};
+
+const sendOTP = async (req: any, res: Response) => {
+    try {
+        const { email } = req.body;
+        let temp = await Client.findOne({ email });
+        if (temp) {
+            return res.status(401).json({
+                success: false,
+                message: "Email already in used in Client. Please login !",
+            });
+        }
+        temp = await Paralegal.findOne({ email });
+        if (temp) {
+            return res.status(401).json({
+                success: false,
+                message: "Email already in used in Paralegal. Please login !",
+            });
+        }
+        temp = await Advocate.findOne({ email });
+        if (temp) {
+            return res.status(401).json({
+                success: false,
+                message: "Email already in used in Advocate. Please login !",
+            });
+        }
+        temp = await Admin.findOne({ email });
+        if (temp) {
+            return res.status(401).json({
+                success: false,
+                message: "Email already in used in Admin. Please login !",
+            });
+        }
+
+        var otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
+
+        let result = await OTP.findOne({ otp: otp });
+
+        while (result) {
+            otp = otpGenerator.generate(6, {
+                upperCaseAlphabets: false,
+                lowerCaseAlphabets: false,
+                specialChars: false,
+            });
+
+            result = await OTP.findOne({ otp: otp });
+        }
+        const otpPayload = { email, otp, type: "signup" };
+        const otpBody = await OTP.create(otpPayload);
+        console.log("otpBODY -> ", otpBody);
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully.",
+        });
+    } catch (error: any) {
+        console.log("Failed to send OTP.", error.message);
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
 
 const signup = async (req: Request, res: Response) => {
     try {
@@ -59,7 +136,7 @@ const signup = async (req: Request, res: Response) => {
             });
         }
 
-        const response = await OTP.find({ email })
+        const response = await OTP.find({ email, type: "signup" })
             .sort({ createdAt: -1 })
             .limit(1);
 
@@ -120,7 +197,9 @@ const signup = async (req: Request, res: Response) => {
             contactNumber,
             password: hashedPassword,
             accountType,
-            image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
+            image: `https://api.dicebear.com/5.x/initials/svg?seed=${encodeURIComponent(
+                `${firstName} ${lastName}`
+            )}`,
         };
 
         if (accountType === "Client") {
@@ -132,6 +211,9 @@ const signup = async (req: Request, res: Response) => {
         } else if (accountType === "Admin") {
             user = await Admin.create(userParams);
         }
+
+        user = user?.toObject() as any;
+        user.password = undefined;
 
         return res.status(200).json({
             success: true,
@@ -188,6 +270,7 @@ const login = async (req: Request, res: Response) => {
 
             user = user.toObject() as any;
             user.token = token;
+            user.password = undefined;
 
             return res.status(200).json({
                 success: true,
@@ -257,7 +340,7 @@ const me = async (req: any, res: Response) => {
         const tempUser = req.user;
         const { email } = tempUser;
 
-        let user = await Client.findOne({ email });
+        let user: UserDocument | null = await Client.findOne({ email });
         if (!user) user = await Advocate.findOne({ email });
         if (!user) user = await Paralegal.findOne({ email });
         if (!user) user = await Admin.findOne({ email });
@@ -267,9 +350,13 @@ const me = async (req: any, res: Response) => {
                 message: "Something went wrong",
             });
         }
+
+        const userObject = user.toObject() as UserObject;
+        userObject.password = undefined;
+
         return res.status(200).json({
             success: true,
-            user,
+            user: userObject,
             message: "User fetched successfully",
         });
     } catch (error) {
@@ -283,13 +370,13 @@ const me = async (req: any, res: Response) => {
 
 const forgotPassword = async (req: any, res: Response) => {
     try {
-        const { Otp, email, newPassword, confirmPassword } = req.body;
+        const { otp, email, newPassword, confirmPassword } = req.body;
 
-        const response = await OTP.find({ email })
+        const response = await OTP.find({ email, type: "forgotPassword" })
             .sort({ createdAt: -1 })
             .limit(1);
 
-        if (response.length === 0 || Otp !== response[0]?.otp) {
+        if (response.length === 0 || otp !== response[0]?.otp) {
             return res.status(400).json({
                 success: false,
                 message: "The OTP is not valid",
@@ -366,16 +453,85 @@ const forgotPassword = async (req: any, res: Response) => {
     }
 };
 
-const resetPassword = async (req: any, res: Response) => {
+const forgotPasswordOTP = async (req: any, res: Response) => {
     try {
+        const { email } = req.body;
+        let checkUserPresent = null;
+        if (checkUserPresent === null) {
+            checkUserPresent = await Client.findOne({ email: email });
+        }
+        if (checkUserPresent === null) {
+            checkUserPresent = await Paralegal.findOne({ email: email });
+        }
+        if (checkUserPresent === null) {
+            checkUserPresent = await Advocate.findOne({ email: email });
+        }
+
+        console.log(email);
+        console.log(checkUserPresent);
+
+        if (!checkUserPresent) {
+            return res.status(401).json({
+                success: false,
+                message: "User doesn't exist",
+            });
+        }
+
+        let otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+        });
+
+        console.log("OTP Generated::", otp);
+
+        let result = await OTP.findOne({ otp });
+
+        while (result) {
+            otp = otpGenerator.generate(6, {
+                upperCaseAlphabets: false,
+                lowerCaseAlphabets: false,
+                specialChars: false,
+            });
+
+            result = await OTP.findOne({ otp });
+        }
+
+        const otpPayload = { email, otp, type: "forgotPassword" };
+        const otpBody = await OTP.create(otpPayload);
+        console.log("Otp Body::", otpBody);
+        return res.status(200).json({
+            success: true,
+            message: "OTP Sent SUCCESSFULLY !!",
+        });
     } catch (error: any) {
-        console.error("Error occurred while resetting password:", error);
+        console.error("Error occurred while sending OTP:", error);
         return res.status(500).json({
             success: false,
-            message: "Error occurred while resetting password",
+            message: "Error occurred while sending OTP",
             error: error.message,
         });
     }
 };
 
-export { login, signup, refresh, me, forgotPassword };
+// const resetPassword = async (req: any, res: Response) => {
+//     try {
+//     } catch (error: any) {
+//         console.error("Error occurred while resetting password:", error);
+//         return res.status(500).json({
+//             success: false,
+//             message: "Error occurred while resetting password",
+//             error: error.message,
+//         });
+//     }
+// };
+
+export {
+    login,
+    signup,
+    refresh,
+    me,
+    forgotPassword,
+    sendOTP,
+    forgotPasswordOTP,
+};

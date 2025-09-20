@@ -11,6 +11,11 @@ const OTPSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    type: {
+        type: String,
+        required: true,
+        enum: ["signup", "forgotPassword"],
+    },
     createdAt: {
         type: Date,
         default: Date.now(),
