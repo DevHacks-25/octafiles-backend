@@ -147,6 +147,8 @@ const signup = async (req: Request, res: Response) => {
             });
         }
 
+        await OTP.deleteMany({ email, type: "signup" });
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const generateUsername = async (prefix: string) => {
@@ -210,9 +212,28 @@ const signup = async (req: Request, res: Response) => {
             user = await Advocate.create(userParams);
         } else if (accountType === "Admin") {
             user = await Admin.create(userParams);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid account type",
+            });
         }
 
+        const payload = {
+            email: user.email,
+            id: user._id,
+            username: user.username,
+            accountType: user.accountType,
+            activationStatus: user.activationStatus,
+        };
+        let expiry = environments.expiry_jwt;
+
+        const token = jwt.sign(payload, environments.jwt_secret as any, {
+            expiresIn: expiry as any,
+        });
+
         user = user?.toObject() as any;
+        user.token = token;
         user.password = undefined;
 
         return res.status(200).json({
@@ -515,11 +536,82 @@ const forgotPasswordOTP = async (req: any, res: Response) => {
     }
 };
 
-const verifyServiceProvidersForm = async (req: any, res: Response) => {
+const completeServiceProvidersForm = async (req: any, res: Response) => {
     try {
+        const { email } = req.user;
+        let user = await Advocate.findOne({ email });
+        if (!user) user = await Paralegal.findOne({ email });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        const {
+            dob,
+            hourlyRate,
+            yearsOfExp,
+            specializations,
+            timeForServing,
+            languages,
+            achievementAndComments,
+            address,
+            bio,
+            isAvailable,
+            responseTime,
+            jurisdiction,
+        } = req.body;
+
+        if (
+            !dob ||
+            !hourlyRate ||
+            !yearsOfExp ||
+            !specializations ||
+            !timeForServing ||
+            !languages ||
+            !achievementAndComments ||
+            !address ||
+            !bio ||
+            !responseTime ||
+            !jurisdiction
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required",
+            });
+        }
+
+        let minPrice = Number.MAX_SAFE_INTEGER;
+        for (const specialization of specializations) {
+            for (const subcategory of specialization.subcategories) {
+                minPrice = Math.min(minPrice, subcategory.price);
+            }
+        }
+
+        if (minPrice === Number.MAX_SAFE_INTEGER) {
+            minPrice = 0;
+        }
+
+        user.dob = dob;
+        user.hourlyRate = hourlyRate;
+        user.yearsOfExp = yearsOfExp;
+        user.specializations = specializations;
+        user.timeForServing = timeForServing;
+        user.languages = languages;
+        user.achievementAndComments = achievementAndComments;
+        user.address = address;
+        user.bio = bio;
+        user.isAvailable = isAvailable;
+        user.responseTime = responseTime;
+        user.jurisdiction = jurisdiction;
+        user.minPrice = minPrice;
+
+        await user.save();
+
         return res.status(200).json({
             success: true,
-            message: "Service providers form verified successfully",
+            message: "Service providers form submitted successfully",
         });
     } catch (error: any) {
         return res.status(500).json({
@@ -538,5 +630,5 @@ export {
     forgotPassword,
     sendOTP,
     forgotPasswordOTP,
-    verifyServiceProvidersForm,
+    completeServiceProvidersForm,
 };

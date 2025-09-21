@@ -8,6 +8,7 @@ import {
     forgotPassword,
     sendOTP,
     forgotPasswordOTP,
+    completeServiceProvidersForm,
 } from "../controllers/user";
 import { auth } from "../middleware/authentication";
 
@@ -22,5 +23,10 @@ router.post("/forgotPassword", forgotPassword);
 router.post("/forgotPasswordOTP", forgotPasswordOTP);
 // router.post("/generateOTP", auth, generateOTP);
 // router.post("/createAdmin", auth, createAdmin);
+router.post(
+    "/completeServiceProvidersForm",
+    auth,
+    completeServiceProvidersForm
+);
 
 export default router;

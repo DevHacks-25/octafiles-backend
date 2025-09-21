@@ -34,12 +34,8 @@ const advocateSchema = new mongoose.Schema(
             type: Number,
             trim: true,
         },
-        barCouncilNumber: {
-            type: String,
-            trim: true,
-        },
         dob: {
-            type: String,
+            type: Date,
         },
         activationStatus: {
             type: String,
@@ -78,6 +74,9 @@ const advocateSchema = new mongoose.Schema(
                 ],
             },
         ],
+        minPrice: {
+            type: Number,
+        },
         timeForServing: [
             {
                 day: {
@@ -103,9 +102,11 @@ const advocateSchema = new mongoose.Schema(
                 type: String,
             },
         ],
-        achievementAndComments: {
-            type: String,
-        },
+        achievementAndComments: [
+            {
+                type: String,
+            },
+        ],
         appointments: [
             {
                 type: mongoose.Schema.Types.ObjectId,
@@ -142,6 +143,17 @@ const advocateSchema = new mongoose.Schema(
                 type: String,
             },
         },
+        jurisdiction: [
+            {
+                state: {
+                    type: String,
+                },
+                barCouncilNumber: {
+                    type: String,
+                    trim: true,
+                },
+            },
+        ],
         bio: {
             type: String,
         },
