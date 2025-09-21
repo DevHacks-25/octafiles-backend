@@ -32,5 +32,6 @@ export = (app: express.Application) => {
     app.use(apiLogger);
 
     app.use("/auth", userRoutes);
+
     app.use("/attorneys", attorneyRoutes);
 };
