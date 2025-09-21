@@ -34,7 +34,6 @@ const getAllAttorneys = async (req: any, res: Response) => {
         }
 
         const filterQuery: any = {
-            isAvailable: true,
             activationStatus: "approved",
         };
 
