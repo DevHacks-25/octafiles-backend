@@ -233,7 +233,7 @@ const signup = async (req: Request, res: Response) => {
         });
 
         user = user?.toObject() as any;
-        user.token = token;
+        user.accessToken = token;
         user.password = undefined;
 
         return res.status(200).json({
@@ -290,13 +290,13 @@ const login = async (req: Request, res: Response) => {
             });
 
             user = user.toObject() as any;
-            user.token = token;
+            user.accessToken = token;
             user.password = undefined;
             user.appointments = undefined;
 
             return res.status(200).json({
                 success: true,
-                token,
+                accessToken: token,
                 user,
                 message: "User logged in successfully",
             });
@@ -345,7 +345,7 @@ const refresh = async (req: any, res: Response) => {
 
         return res.status(200).json({
             success: true,
-            token: newToken,
+            accessToken: newToken,
             message: "Token refreshed successfully",
         });
     } catch (error) {
