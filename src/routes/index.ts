@@ -3,6 +3,8 @@ import cors from "cors";
 import environments from "../environments";
 import userRoutes from "./user";
 import attorneyRoutes from "./attorney";
+import attorneyBookingRoutes from "./attorneyBooking";
+import chatRoutes from "./chat";
 
 const apiLogger = (req: Request, res: Response, next: NextFunction) => {
     const start = performance.now();
@@ -33,4 +35,6 @@ export = (app: express.Application) => {
 
     app.use("/auth", userRoutes);
     app.use("/attorneys", attorneyRoutes);
+    app.use("/attorneys/booking", attorneyBookingRoutes);
+    app.use("/chats", chatRoutes);
 };
