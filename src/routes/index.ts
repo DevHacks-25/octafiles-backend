@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import environments from "../environments";
 import userRoutes from "./user";
+import attorneyRoutes from "./attorney";
 
 const apiLogger = (req: Request, res: Response, next: NextFunction) => {
     const start = performance.now();
@@ -29,5 +30,7 @@ export = (app: express.Application) => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(apiLogger);
+
     app.use("/auth", userRoutes);
+    app.use("/attorneys", attorneyRoutes);
 };

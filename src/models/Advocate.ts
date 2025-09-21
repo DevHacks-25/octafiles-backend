@@ -115,6 +115,9 @@ const advocateSchema = new mongoose.Schema(
         ],
         rating: {
             type: Number,
+            min: 0,
+            max: 5,
+            default: 0,
         },
         reviews: [
             {
@@ -156,6 +159,8 @@ const advocateSchema = new mongoose.Schema(
         ],
         bio: {
             type: String,
+            trim: true,
+            maxlength: 1000,
         },
         isAvailable: {
             type: Boolean,
