@@ -60,7 +60,6 @@ const getAllAttorneys = async (req: any, res: Response) => {
             filterQuery.rating = { $in: ratings };
         }
 
-        // Jurisdiction array filtering
         if (
             jurisdictions &&
             Array.isArray(jurisdictions) &&
@@ -71,7 +70,6 @@ const getAllAttorneys = async (req: any, res: Response) => {
             };
         }
 
-        // Specializations array filtering
         if (
             specializations &&
             Array.isArray(specializations) &&
@@ -86,12 +84,10 @@ const getAllAttorneys = async (req: any, res: Response) => {
             filterQuery.languages = { $in: languages };
         }
 
-        // Years of experience numeric range filtering
         if (
             minyearsofexperience !== undefined ||
             maxyearsofexperience !== undefined
         ) {
-            // Use $expr to compare numeric values stored as strings
             const expConditions = [];
             if (minyearsofexperience !== undefined) {
                 expConditions.push({
@@ -229,4 +225,54 @@ const getAllAttorneys = async (req: any, res: Response) => {
     }
 };
 
-export { getAllAttorneys };
+const getAttorneyDetails = async (req: any, res: Response) => {
+    try {
+        const { id, accountType } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Attorney ID is required",
+            });
+        }
+
+        if (!ATTORNEY_TYPE_ARRAY.includes(accountType)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid account type",
+            });
+        }
+
+        const attorneyModel =
+            accountType === ATTORNEY_TYPE.ADVOCATE ? Advocate : Paralegal;
+
+        const attorney = await attorneyModel
+            .findOne({
+                _id: id,
+                activationStatus: "approved",
+            })
+            .select(
+                "-password -email -phone -otp -resetPasswordToken -resetPasswordExpires -refreshToken -__v"
+            );
+
+        if (!attorney) {
+            return res.status(404).json({
+                success: false,
+                message: "Attorney not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Attorney details fetched successfully",
+            data: attorney,
+        });
+    } catch (error: any) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+export { getAllAttorneys, getAttorneyDetails };
